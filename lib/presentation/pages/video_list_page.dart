@@ -188,6 +188,7 @@ class VideoListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'video_list_page_fab',
         onPressed: () => _importVideo(context, ref),
         icon: const Icon(Icons.add),
         label: const Text('导入视频'),
@@ -224,24 +225,30 @@ class VideoListPage extends ConsumerWidget {
       final video = await controller.importVideo();
       
       if (context.mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(); // 关闭加载对话框
         
         if (video != null) {
+          // 显示成功提示
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('视频导入成功: ${video.title}'),
               backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
             ),
           );
+          
+          // 跳转到视频播放页面
+          context.push('/video/${video.id}');
         }
       }
     } catch (e) {
       if (context.mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(); // 关闭加载对话框
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('导入失败: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
           ),
         );
       }

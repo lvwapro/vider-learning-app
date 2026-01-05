@@ -7,12 +7,15 @@ import '../../data/models/video.dart';
 import '../../data/repositories/video_repository.dart';
 import '../../core/utils/logger.dart';
 import '../../core/constants/app_constants.dart';
+import 'subtitle_service.dart';
 
 /// 视频导入服务
 class VideoImportService {
   final VideoRepository _videoRepository;
+  final SubtitleService _subtitleService;
 
-  VideoImportService(this._videoRepository);
+  VideoImportService(this._videoRepository, [SubtitleService? subtitleService])
+      : _subtitleService = subtitleService ?? SubtitleService();
 
   /// 选择并导入视频
   Future<Video?> importVideo() async {
@@ -66,6 +69,17 @@ class VideoImportService {
       await videoFile.copy(newPath);
       AppLogger.info('视频已复制到: $newPath');
 
+      // 尝试提取字幕
+      String? subtitlePath;
+      try {
+        subtitlePath = await _subtitleService.extractSubtitle(newPath);
+        if (subtitlePath != null) {
+          AppLogger.info('找到字幕文件: $subtitlePath');
+        }
+      } catch (e) {
+        AppLogger.warning('提取字幕失败', e);
+      }
+
       // 创建视频模型
       final video = Video()
         ..title = path.basenameWithoutExtension(fileName)
@@ -73,6 +87,7 @@ class VideoImportService {
         ..durationInSeconds = videoInfo.duration.inSeconds
         ..sizeInBytes = fileSize
         ..format = path.extension(fileName).replaceFirst('.', '')
+        ..subtitlePath = subtitlePath
         ..createdAt = DateTime.now()
         ..tags = []
         ..playbackPosition = 0

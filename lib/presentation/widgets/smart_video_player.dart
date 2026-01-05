@@ -4,7 +4,6 @@ import 'package:chewie/chewie.dart';
 import 'package:video_player/video_player.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/extensions/duration_extensions.dart';
 import '../../data/models/video_note.dart';
 
 /// 智能视频播放器组件
@@ -48,9 +47,21 @@ class _SmartVideoPlayerState extends State<SmartVideoPlayer> {
 
   Future<void> _initializePlayer() async {
     try {
-      _videoPlayerController = VideoPlayerController.file(
-        File(widget.videoPath),
-      );
+      // 判断是在线视频还是本地视频
+      final isOnline = widget.videoPath.startsWith('http://') || 
+                      widget.videoPath.startsWith('https://');
+      
+      if (isOnline) {
+        // 在线视频
+        _videoPlayerController = VideoPlayerController.networkUrl(
+          Uri.parse(widget.videoPath),
+        );
+      } else {
+        // 本地视频
+        _videoPlayerController = VideoPlayerController.file(
+          File(widget.videoPath),
+        );
+      }
 
       await _videoPlayerController.initialize();
 
@@ -160,6 +171,7 @@ class _SmartVideoPlayerState extends State<SmartVideoPlayer> {
                   right: 16,
                   bottom: 60,
                   child: FloatingActionButton(
+                    heroTag: 'video_player_add_note_fab',
                     mini: true,
                     onPressed: widget.onAddNote,
                     backgroundColor: AppColors.accent,
@@ -205,47 +217,51 @@ class _SmartVideoPlayerState extends State<SmartVideoPlayer> {
       color: Colors.black,
       height: 250,
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              '视频加载失败',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                _errorMessage ?? '未知错误',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.red,
                 ),
-                textAlign: TextAlign.center,
-              ),
+                const SizedBox(height: 16),
+                const Text(
+                  '视频加载失败',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _errorMessage ?? '未知错误',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _hasError = false;
+                      _isInitialized = false;
+                    });
+                    _initializePlayer();
+                  },
+                  child: const Text('重试'),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _hasError = false;
-                  _isInitialized = false;
-                });
-                _initializePlayer();
-              },
-              child: const Text('重试'),
-            ),
-          ],
+          ),
         ),
       ),
     );

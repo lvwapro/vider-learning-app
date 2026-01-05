@@ -33,7 +33,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         context.go(AppRoutes.notes);
         break;
       case 3:
-        context.go(AppRoutes.mindmap);
+        context.go(AppRoutes.profile);
         break;
     }
   }
@@ -61,30 +61,25 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 欢迎卡片
-            _buildWelcomeCard(),
+            // 统计概览（简洁版）
+            _buildStatsOverview(videosAsync, notesAsync),
             const SizedBox(height: 24),
 
-            // 统计卡片
-            _buildStatsCards(videosAsync, notesAsync),
-            const SizedBox(height: 24),
-
-            // 快速操作
-            _buildQuickActions(),
-            const SizedBox(height: 24),
-
-            // 最近视频
-            _buildRecentVideos(videosAsync),
+            // 主要功能卡片（类似 Deja 的大卡片布局）
+            Expanded(
+              child: _buildMainFeatures(),
+            ),
           ],
         ),
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton.extended(
+              heroTag: 'home_page_fab',
               onPressed: () => _importVideo(context, ref),
               icon: const Icon(Icons.add),
               label: const Text('导入视频'),
@@ -113,92 +108,16 @@ class _HomePageState extends ConsumerState<HomePage> {
             label: '笔记',
           ),
           NavigationDestination(
-            icon: Icon(Icons.account_tree_outlined),
-            selectedIcon: Icon(Icons.account_tree),
-            label: '思维导图',
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: '我的',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildWelcomeCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.school,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  '开始学习',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            '从视频中提取知识，创建笔记和思维导图',
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.white70,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () => context.go(AppRoutes.videoList),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            icon: const Icon(Icons.video_library, size: 20),
-            label: const Text(
-              '浏览视频库',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsCards(
+  Widget _buildStatsOverview(
     AsyncValue<List<dynamic>> videosAsync,
     AsyncValue<List<dynamic>> notesAsync,
   ) {
@@ -207,223 +126,135 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return Row(
       children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.video_library,
-            title: '视频',
-            value: videoCount.toString(),
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.note,
-            title: '笔记',
-            value: noteCount.toString(),
-            color: AppColors.secondary,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.account_tree,
-            title: '导图',
-            value: '0',
-            color: AppColors.accent,
-          ),
-        ),
+        _buildStatItem('视频', videoCount),
+        const SizedBox(width: 24),
+        _buildStatItem('笔记', noteCount),
+        const SizedBox(width: 24),
+        _buildStatItem('导图', 0),
       ],
     );
   }
 
-  Widget _buildStatCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required Color color,
-  }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, size: 28, color: color),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickActions() {
+  Widget _buildStatItem(String label, int count) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '快速操作',
-          style: Theme.of(context).textTheme.titleLarge,
+          '$count',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
         ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            _buildQuickActionChip(
-              icon: Icons.add_circle_outline,
-              label: '导入视频',
-              onTap: () => _importVideo(context, ref),
-            ),
-            _buildQuickActionChip(
-              icon: Icons.note_add,
-              label: '新建笔记',
-              onTap: () => context.go(AppRoutes.notes),
-            ),
-            _buildQuickActionChip(
-              icon: Icons.account_tree,
-              label: '新建导图',
-              onTap: () => context.go(AppRoutes.mindmap),
-            ),
-            _buildQuickActionChip(
-              icon: Icons.star_outline,
-              label: '收藏',
-              onTap: () {
-                // TODO: 查看收藏
-              },
-            ),
-          ],
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[600],
+              ),
         ),
       ],
     );
   }
 
-  Widget _buildQuickActionChip({
+  Widget _buildMainFeatures() {
+    return ListView(
+      children: [
+        _buildFeatureCard(
+          icon: Icons.video_library_outlined,
+          title: '视频库',
+          subtitle: '管理学习视频',
+          color: AppColors.primary,
+          onTap: () => context.go(AppRoutes.videoList),
+        ),
+        const SizedBox(height: 16),
+        _buildFeatureCard(
+          icon: Icons.note_outlined,
+          title: '我的笔记',
+          subtitle: '查看所有笔记',
+          color: AppColors.secondary,
+          onTap: () => context.go(AppRoutes.notes),
+        ),
+        const SizedBox(height: 16),
+        _buildFeatureCard(
+          icon: Icons.account_tree_outlined,
+          title: '思维导图',
+          subtitle: '知识可视化',
+          color: AppColors.accent,
+          onTap: () => context.go(AppRoutes.mindmap),
+        ),
+        const SizedBox(height: 16),
+        _buildFeatureCard(
+          icon: Icons.add_circle_outline,
+          title: '导入视频',
+          subtitle: '添加新内容',
+          color: Colors.green,
+          onTap: () => _importVideo(context, ref),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureCard({
     required IconData icon,
-    required String label,
+    required String title,
+    required String subtitle,
+    required Color color,
     required VoidCallback onTap,
   }) {
-    return ActionChip(
-      avatar: Icon(icon, size: 20),
-      label: Text(label),
-      onPressed: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      elevation: 1,
+    return Card(
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
       ),
-    );
-  }
-
-  Widget _buildRecentVideos(AsyncValue<List<dynamic>> videosAsync) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '最近视频',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            TextButton(
-              onPressed: () => context.go(AppRoutes.videoList),
-              child: const Text('查看全部'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        videosAsync.when(
-          data: (videos) {
-            if (videos.isEmpty) {
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.video_library_outlined,
-                          size: 48,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          '还没有视频',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Colors.grey[600],
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '点击下方按钮导入第一个视频',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.grey[500],
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              );
-            }
-
-            final recentVideos = videos.take(3).toList();
-            return Column(
-              children: recentVideos.map((video) {
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.play_circle_outline),
+                child: Icon(
+                  icon,
+                  size: 32,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
-                    title: Text(video.title),
-                    subtitle: Text(video.formattedDuration),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      context.push('/video/${video.id}');
-                    },
-                  ),
-                );
-              }).toList(),
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(
-            child: Text('加载失败: $error'),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: Colors.grey[400],
+                size: 24,
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 

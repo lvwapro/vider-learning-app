@@ -181,6 +181,7 @@ class MindMapPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'mindmap_page_fab',
         onPressed: () => _showCreateOptions(context, ref),
         icon: const Icon(Icons.add),
         label: const Text('新建导图'),

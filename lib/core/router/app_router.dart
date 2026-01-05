@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../presentation/pages/splash_page.dart';
-import '../../presentation/pages/home_page.dart';
+import '../../presentation/pages/main_page.dart';
 import '../../presentation/pages/video_list_page.dart';
 import '../../presentation/pages/video_player_page.dart';
 import '../../presentation/pages/notes_page.dart';
@@ -15,12 +15,13 @@ class AppRoutes {
 
   static const String splash = '/';
   static const String home = '/home';
-  static const String videoList = '/videos';
+  static const String videoList = '/videos/all';
   static const String videoPlayer = '/video/:id';
-  static const String notes = '/notes';
+  static const String notes = '/notes/all';
   static const String noteDetail = '/notes/:id';
   static const String mindmap = '/mindmap';
   static const String mindmapDetail = '/mindmap/:id';
+  static const String profile = '/profile';
   static const String settings = '/settings';
 }
 
@@ -41,12 +42,33 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.home,
         name: 'home',
-        builder: (context, state) => const HomePage(),
+        builder: (context, state) => const MainPage(initialIndex: 0),
       ),
 
-      // 视频列表
+      // 视频库 Tab
       GoRoute(
         path: AppRoutes.videoList,
+        name: 'videoListTab',
+        builder: (context, state) => const MainPage(initialIndex: 1),
+      ),
+
+      // 笔记 Tab
+      GoRoute(
+        path: AppRoutes.notes,
+        name: 'notesTab',
+        builder: (context, state) => const MainPage(initialIndex: 2),
+      ),
+
+      // 我的 Tab
+      GoRoute(
+        path: AppRoutes.profile,
+        name: 'profileTab',
+        builder: (context, state) => const MainPage(initialIndex: 3),
+      ),
+
+      // 视频列表（完整页面）
+      GoRoute(
+        path: '/videos/all',
         name: 'videoList',
         builder: (context, state) => const VideoListPage(),
       ),
@@ -61,14 +83,14 @@ class AppRouter {
         },
       ),
 
-      // 笔记列表
+      // 笔记列表（完整页面）
       GoRoute(
-        path: AppRoutes.notes,
-        name: 'notes',
+        path: '/notes/all',
+        name: 'noteList',
         builder: (context, state) => const NotesPage(),
       ),
 
-      // 思维导图列表
+      // 思维导图列表（完整页面）
       GoRoute(
         path: AppRoutes.mindmap,
         name: 'mindmap',

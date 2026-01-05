@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/mind_map.dart';
-import '../../data/repositories/mindmap_repository.dart';
 import '../widgets/mindmap_canvas.dart';
 import '../providers/mindmap_providers.dart';
 import '../../core/utils/logger.dart';
@@ -155,6 +154,7 @@ class _MindMapEditorPageState extends ConsumerState<MindMapEditorPage> {
             ),
       floatingActionButton: _nodes.isEmpty
           ? FloatingActionButton.extended(
+              heroTag: 'mindmap_editor_fab',
               onPressed: _createRootNode,
               icon: const Icon(Icons.add),
               label: const Text('创建中心节点'),
